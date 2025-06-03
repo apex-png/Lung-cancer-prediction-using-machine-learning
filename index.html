@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lung Cancer Prediction</title>
+  <style>
+    /* Base Styles (Light & Dark Shared) */
+    body {
+      background-image: url('https://github.com/Priyansh42/Lung-Cancer-Detection/blob/main/Images/Lung-Cancer-Detection.jpg?raw=true');
+      background-size: 110% 110%;
+      background-position: center;
+      animation: animatedBackground 30s ease-in-out infinite;
+      background-repeat: no-repeat;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      height: 100vh;
+      overflow-y: auto;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      transition: background-color 0.2s ease, color 0.2s ease;
+      color: #222;
+    }
+
+    @keyframes animatedBackground {
+      0% {
+        background-size: 110% 110%;
+        background-position: center;
+      }
+      50% {
+        background-size: 115% 115%;
+        background-position: center 40%;
+      }
+      100% {
+        background-size: 110% 110%;
+        background-position: center;
+      }
+    }
+
+    .header {
+      text-align: center;
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.75);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+      animation: fadeIn 1s ease;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      color: #fff;
+      user-select: none;
+    }
+
+    /* Buttons */
+    .button {
+      display: inline-block;
+      margin: 10px;
+      padding: 15px 30px;
+      font-size: 18px;
+      color: white;
+      background-color: #3498db; /* Original button color */
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease,
+        transform 0.2s ease;
+      animation: slideInUp 0.6s ease;
+      user-select: none;
+    }
+
+    .button:hover,
+    .button:focus {
+      background-color: #2980b9;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Containers & Forms */
+    .submenu,
+    .form-container {
+      text-align: center;
+      margin-top: 20px;
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      animation: fadeInUp 0.8s ease;
+      color: #fff;
+      user-select: none;
+    }
+
+    .form-container input,
+    .form-container select,
+    .form-container textarea {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 80%;
+      max-width: 300px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      user-select: text;
+    }
+
+    /* Right Side Containers */
+    #patient-data-display,
+    #overview-container {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 10px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+      width: 270px;
+      text-align: left;
+      overflow-y: auto;
+      max-height: 80vh;
+      animation: fadeInRight 0.7s ease;
+      color: #222;
+      user-select: text;
+    }
+
+    /* Other Elements */
+    #prediction-result {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 20px;
+      color: #e1eaea;
+    }
+
+    #image-preview {
+      display: none;
+      margin: 10px auto;
+      width: 200px;
+      height: auto;
+      border-radius: 10px;
+      border: 3px solid #ffffff;
+    }
+
+    #loading {
+      font-size: 18px;
+      color: yellow;
+      display: none;
+      margin-top: 10px;
+    }
+
+    #tips-button {
+      position: absolute;
+      top: 65%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #tips-container {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 500px;
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      text-align: left;
+      animation: fadeInUp 0.8s ease;
+      color: #222;
+      user-select: text;
+    }
+
+    #tips-container ul {
+      padding-left: 20px;
+      text-align: left;
+    }
+
+    #tips-container li {
+      margin-bottom: 10px;
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 768px) {
+      #patient-data-display,
+      #overview-container {
+        position: static;
+        transform: none;
+        margin: 20px auto;
+        width: 95%;
+        max-width: none;
+      }
+
+      #tips-button {
+        position: static;
+        transform: none;
+        display: block;
+        margin: 20px auto;
+      }
+
+      .submenu,
+      .form-container {
+        width: 95%;
+      }
+    }
+
+    /* Dark Mode Support */
+    @media (prefers-color-scheme: dark) {
+      body {
+        color: #ecf0f1;
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .submenu,
+      .form-container {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #f5f5f5;
+      }
+
+      #patient-data-display,
+      #overview-container,
+      #tips-container {
+        background-color: rgba(20, 20, 20, 0.9);
+        color: #f5f5f5;
+      }
+
+      .form-container input,
+      .form-container select,
+      .form-container textarea {
+        background-color: #333;
+        color: white;
+      }
+
+      /* Keep original button color in dark mode too */
+      .button {
+        background-color: #3498db;
+        color: white;
+      }
+
+      .button:hover,
+      .button:focus {
+        background-color: #2980b9;
+      }
+
+      #loading {
+        color: #ff0;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+    <script>
+        let patientData = {}; // To store patient data
+
+        function toggleSubmenu(id) {
+    const submenu = document.getElementById(id);
+    submenu.classList.toggle('hidden');
+
+    // If "Patient Data" submenu is toggled, also hide the patient form and data display
+    if (id === 'Patient Data-submenu') {
+        document.getElementById('patient-form').classList.add('hidden');
+        document.getElementById('patient-data-display').classList.add('hidden');
+    }
+}
+        function showPatientForm() {
+            document.getElementById('patient-form').classList.remove('hidden');
+        }
+
+        function showPatientData() {
+            const patientDataDisplay = document.getElementById('patient-data-display');
+            patientDataDisplay.innerHTML = `
+                <h3>Patient Data:</h3>
+                <p><strong>Name:</strong> ${patientData.name}</p>
+                <p><strong>Age:</strong> ${patientData.age}</p>
+                <p><strong>Gender:</strong> ${patientData.gender}</p>
+                <p><strong>Smoking History:</strong> ${patientData.smokingHistory}</p>
+                <p><strong>Medical History:</strong> ${patientData.medicalHistory}</p>
+            `;
+            document.getElementById('patient-data-display').classList.remove('hidden');
+        }
+
+        function submitPatientData() {
+    patientData.name = document.getElementById('patient-name').value;
+    patientData.age = document.getElementById('patient-age').value;
+    patientData.gender = document.getElementById('patient-gender').value;
+    patientData.smokingHistory = document.getElementById('patient-smoking-history').value;
+    patientData.medicalHistory = document.getElementById('patient-medical-history').value;
+
+    alert('Patient details submitted!');
+
+    // Reset the form and hide it after submission
+    document.getElementById('patient-form').reset();
+    document.getElementById('patient-form').classList.add('hidden');
+}
+
+
+function toggleResults() {
+    const resultDisplay = document.getElementById('result-display');
+    const overviewButton = document.getElementById('overview-button');
+    const tipsButton = document.getElementById('tips-button');
+    const tipsContainer = document.getElementById('tips-container');
+
+    resultDisplay.classList.toggle('hidden');
+    overviewButton.classList.toggle('hidden');
+    tipsButton.classList.toggle('hidden');
+
+    // Hide tips box when Results button is clicked
+    tipsContainer.classList.add('hidden');
+
+    if (!resultDisplay.classList.contains('hidden')) {
+        document.getElementById('prediction-result').innerHTML = 'No prediction yet.';
+        document.getElementById('image-preview').style.display = 'none';
+    }
+}
+
+        function uploadImage() {
+            document.getElementById('image-upload-container').classList.remove('hidden');
+        }
+
+        function previewImage(event) {
+            let file = event.target.files[0];
+            let preview = document.getElementById('image-preview');
+
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        function predictImage() {
+            let fileInput = document.getElementById('imageUpload');
+            let preview = document.getElementById('image-preview');
+            let resultDisplay = document.getElementById('prediction-result');
+            let loadingText = document.getElementById('loading');
+
+            if (!fileInput.files.length) {
+                resultDisplay.innerHTML = "⚠️ Please select an image before predicting.";
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            loadingText.style.display = 'block';
+            resultDisplay.innerHTML = "";
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingText.style.display = 'none';
+
+                if (data.error) {
+                    resultDisplay.innerHTML = "❌ Error: " + data.error;
+                } else {
+        resultDisplay.innerHTML = 
+            `<strong>Prediction:</strong> ${data.prediction} <br> 
+             <strong>Probability:</strong> ${data.probability}%`;
+    }
+                document.getElementById('result-display').classList.remove('hidden');
+
+                // Hide the buttons after prediction
+                document.getElementById('image-upload-container').classList.add('hidden');
+            })
+            .catch(error => {
+                loadingText.style.display = 'none';
+                resultDisplay.innerHTML = "❌ Upload failed: " + error;
+            });
+        }
+
+        function submitPrediction() {
+            alert("OK, Prediction Submitted!");
+        }
+
+        function showOverview() {
+            const overviewContainer = document.getElementById('overview-container');
+            overviewContainer.innerHTML = `
+                <h3>Overview</h3>
+                <p><strong>Name:</strong> ${patientData.name}</p>
+                <p><strong>Age:</strong> ${patientData.age}</p>
+                <p><strong>Gender:</strong> ${patientData.gender}</p>
+                <p><strong>Smoking History:</strong> ${patientData.smokingHistory}</p>
+                <p><strong>Medical History:</strong> ${patientData.medicalHistory}</p>
+                <img src="https://example.com/cancer-photo.jpg" alt="Cancer Photo" style="width: 100%; border-radius: 10px;">
+                <div>${document.getElementById('prediction-result').innerHTML}</div>
+            `;
+            overviewContainer.classList.remove('hidden');
+            document.getElementById('tips-button').classList.remove('hidden');
+        }
+
+        function showTips() {
+            document.getElementById('tips-container').classList.toggle('hidden');
+        }
+        function showContactOptions() {
+            document.getElementById('contact-options').classList.toggle('hidden');
+        }
+        function showContactDetails() {
+            document.getElementById('contact-details').classList.remove('hidden');
+        }
+        function showRemarks() {
+            document.getElementById('remarks-form').classList.remove('hidden');
+        }
+
+    </script>
+</head>
+<body>
+
+<div class="header">
+    <h1>Lung Cancer Prediction Application</h1>
+    <button class="button" onclick="toggleSubmenu('Patient Data-submenu')">Patient Data</button>
+    <button class="button" onclick="toggleSubmenu('image-prediction-submenu')">Image Prediction</button>
+    <button class="button" onclick="toggleResults()">Result</button>
+    <button class="button" onclick="showContactOptions()">Contact Us</button>
+</div>
+
+<div id="Patient Data-submenu" class="hidden submenu">
+    <button class="button" onclick="showPatientForm()">Patient Details</button>
+    <button class="button" onclick="showPatientData()">View Data</button>
+</div>
+
+<div id="image-prediction-submenu" class="hidden submenu">
+    <button class="button" onclick="uploadImage()">Upload Image</button>
+</div>
+
+<div id="patient-form" class="hidden form-container">
+    <h2>Enter Patient Details</h2>
+    <input type="text" id="patient-name" placeholder="Patient Name">
+    <input type="number" id="patient-age" placeholder="Age">
+    <select id="patient-gender">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+    </select>
+    <input type="text" id="patient-smoking-history" placeholder="Smoking History">
+    <input type="text" id="patient-medical-history" placeholder="Medical History">
+    <button class="button" onclick="submitPatientData()">Submit</button>
+</div>
+
+<div id="patient-data-display" class="hidden"></div>
+
+<div id="image-upload-container" class="hidden form-container">
+    <h2>Upload an X-ray Image</h2>
+    <input type="file" id="imageUpload" accept="image/*" onchange="previewImage(event)">
+    <img id="image-preview" class="hidden">
+    <button class="button" onclick="predictImage()">Predict Result</button>
+    <p id="loading">⏳ Processing... Please wait.</p>
+</div>
+
+<div id="result-display" class="hidden form-container">
+    <h2>Prediction Result</h2>
+    <div id="prediction-result">No prediction yet.</div>
+</div>
+
+<div id="overview-button" class="hidden form-container">
+    <button class="button" onclick="showOverview()">Overview</button>
+</div>
+
+<div id="overview-container" class="hidden"></div>
+
+<button id="tips-button" class="button hidden" onclick="showTips()">Tips</button>
+
+<div id="tips-container" class="hidden">
+    <h3>Health Tips</h3>
+    <ul>
+        <li>Avoid smoking and exposure to secondhand smoke.</li>
+        <li>Maintain a healthy diet rich in fruits and vegetables.</li>
+        <li>Exercise regularly to strengthen your immune system.</li>
+        <li>Limit exposure to carcinogens and pollutants.</li>
+        <li>Get regular health check-ups and screenings.</li>
+    </ul>
+</div>
+<div id="contact-options" class="hidden submenu">
+    <button class="button" onclick="showContactDetails()">Contact Details</button>
+    <button class="button" onclick="showRemarks()">Remarks</button>
+</div>
+
+<div id="contact-details" class="hidden form-container">
+    <h2>Contact Details</h2>
+    <p><strong>Phone:</strong> +1 234 567 890</p>
+    <p><strong>Email:</strong> support@lungcancerpredict.com</p>
+    <p><strong>Address:</strong> 123 Health St, Med City, USA</p>
+</div>
+
+<div id="remarks-form" class="hidden form-container">
+    <h2>Remarks</h2>
+    <textarea placeholder="Enter your remarks here" rows="4" style="width: 80%; max-width: 300px;"></textarea>
+    <button class="button" onclick="alert('Remarks Submitted!')">Submit</button>
+</div>
+</body>
+</html>
+
